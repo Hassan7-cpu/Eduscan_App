@@ -31,14 +31,14 @@ class MyApp extends StatelessWidget {
               debugShowCheckedModeBanner: false,
               theme: AppTheme.lightTheme,
               darkTheme: AppTheme.darkTheme,
-              themeMode: isDark ? ThemeMode.dark : ThemeMode.light,
+              themeMode: isDark ? ThemeMode.light : ThemeMode.dark,
               routes: {
                 'homescreen': (context) => const HomeScreen(),
                 'signin': (context) => const SigninScreen(),
                 'login': (context) => const LoginView(),
                 'inoduction_screen': (context) => IntoductionScreen(),
               },
-              home: const IntoductionScreen(),
+              home: const HomeScreen(),
             );
           },
         );

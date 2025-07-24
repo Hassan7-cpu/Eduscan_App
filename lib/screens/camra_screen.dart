@@ -1,12 +1,13 @@
-// ignore_for_file: avoid_print, unused_import
+// ignore_for_file: avoid_print
 
 import 'dart:io';
 import 'package:camera/camera.dart';
-import 'package:eduscan_app/screens/image_screen.dart';
 import 'package:flutter/material.dart';
 
 class CameraCaptureScreen extends StatefulWidget {
-  const CameraCaptureScreen({super.key});
+  final Function(File imageFile) onImageTaken;
+
+  const CameraCaptureScreen({super.key, required this.onImageTaken});
 
   @override
   State<CameraCaptureScreen> createState() => _CameraCapturePageState();
@@ -44,12 +45,9 @@ class _CameraCapturePageState extends State<CameraCaptureScreen> {
       final image = await cameraController!.takePicture();
 
       if (!mounted) return;
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => ImageDisplayPage(imagePath: image.path),
-        ),
-      );
+
+      // بدل الـ Navigator → استدعاء الفنكشن اللي جاي من HomeScreen
+      widget.onImageTaken(File(image.path));
     } catch (e) {
       print('Error taking picture: $e');
     }
@@ -65,15 +63,17 @@ class _CameraCapturePageState extends State<CameraCaptureScreen> {
       appBar: AppBar(title: const Text('التقاط صورة')),
       body: Column(
         children: [
-          FutureBuilder(
-            future: initializeControllerFuture,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.done) {
-                return CameraPreview(cameraController!);
-              } else {
-                return const Center(child: CircularProgressIndicator());
-              }
-            },
+          Expanded(
+            child: FutureBuilder(
+              future: initializeControllerFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.done) {
+                  return CameraPreview(cameraController!);
+                } else {
+                  return const Center(child: CircularProgressIndicator());
+                }
+              },
+            ),
           ),
         ],
       ),
@@ -81,7 +81,7 @@ class _CameraCapturePageState extends State<CameraCaptureScreen> {
         alignment: Alignment.bottomCenter,
         child: FloatingActionButton(
           onPressed: _takePicture,
-          child: Center(child: const Icon(Icons.camera_alt_sharp)),
+          child: const Icon(Icons.camera_alt_sharp),
         ),
       ),
     );

@@ -1,8 +1,11 @@
+import 'dart:io';
 import 'package:eduscan_app/constant.dart';
 import 'package:eduscan_app/screens/camra_screen.dart';
 import 'package:eduscan_app/screens/chat_screen.dart';
+import 'package:eduscan_app/screens/profile_screen.dart';
 import 'package:eduscan_app/widgets/home_contect.dart';
 import 'package:flutter/material.dart';
+import 'package:eduscan_app/screens/image_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -12,34 +15,38 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final List<Widget> pages = const [
-    HomeContect(),
-    CameraCaptureScreen(),
-    ChatScreen(),
-  ];
   int currentIndex = 0;
+  File? imageFile;
+
+  void updateImage(File file) {
+    setState(() {
+      imageFile = file;
+      currentIndex = 1; // الكاميرا
+    });
+  }
+
+  final List<Widget> pages = [];
 
   @override
   Widget build(BuildContext context) {
+    final List<Widget> pageList = [
+      const HomeContect(),
+      imageFile != null
+          ? ImageDisplayPage(imagePath: imageFile!.path)
+          : CameraCaptureScreen(onImageTaken: updateImage),
+      const ChatScreen(),
+      const ProfileScreen(),
+    ];
+
     return Scaffold(
-      body: pages[currentIndex],
+      body: pageList[currentIndex],
       bottomNavigationBar: Stack(
         children: [
-          Container(
-            height: 60,
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Colors.blue, Colors.purple],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-            ),
-          ),
           BottomNavigationBar(
             currentIndex: currentIndex,
-            backgroundColor: Colors.transparent,
+            backgroundColor: Color(0XFFDADADA),
             selectedItemColor: secondColor,
-            unselectedItemColor: Colors.white70,
+            unselectedItemColor: Color(0XFF9E9E9E),
             type: BottomNavigationBarType.fixed,
             elevation: 0,
             onTap: (index) {
@@ -54,6 +61,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 label: 'Camera',
               ),
               BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Chat'),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.person_rounded),
+                label: 'Profile',
+              ),
             ],
           ),
         ],

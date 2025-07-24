@@ -4,6 +4,7 @@
 import 'dart:io';
 import 'package:eduscan_app/helper/user_image_notifier.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
 
 class AddYourImage extends StatelessWidget {
@@ -31,10 +32,10 @@ class AddYourImage extends StatelessWidget {
         valueListenable: userImageNotifier,
         builder: (context, image, _) {
           return CircleAvatar(
-            radius: 40,
+            radius: 60.r,
             backgroundImage: image != null ? FileImage(image) : null,
             child: image == null
-                ? const Icon(Icons.person, size: 40, color: Colors.white)
+                ? Icon(Icons.person, size: 60.r, color: Colors.white)
                 : null,
             backgroundColor: Colors.grey[300],
           );
