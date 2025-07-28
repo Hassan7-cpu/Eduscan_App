@@ -18,15 +18,21 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _controller = TextEditingController();
   final List<Map<String, dynamic>> _messages = [];
-  final AudioPlayer _audioPlayer = AudioPlayer();
-
+  final ScrollController scrollControlle = ScrollController();
   Duration duration = Duration.zero;
   Duration position = Duration.zero;
-  bool isPlaying = false;
-  bool isLoading = false;
-  bool isPaused = false;
+  void scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (scrollControlle.hasClients) {
+        scrollControlle.animateTo(
+          0.0, // لأن ListView.reverse = true
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
 
-  /// إرسال رسالة نصية
   void _sendTextMessage(String text) {
     if (text.trim().isEmpty) return;
 
@@ -38,11 +44,10 @@ class _ChatScreenState extends State<ChatScreen> {
         'date': DateTime.now(),
       });
     });
-
+    scrollToBottom();
     _controller.clear();
   }
 
-  /// اختيار صورة من المعرض
   Future<void> _pickImage() async {
     final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
     if (picked != null) {
@@ -57,61 +62,6 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  /// اختيار ملف صوتي
-
-  Future<void> _pickAudio() async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['mp3', 'wav', 'aac'],
-    );
-    if (result != null && result.files.single.path != null) {
-      setState(() {
-        _messages.add({
-          'type': 'audio',
-          'path': result.files.single.path!,
-          'isSender': true,
-          'date': DateTime.now(),
-        });
-      });
-    }
-  }
-
-  /// تشغيل الصوت
-  Future<void> _playAudio(String path) async {
-    try {
-      isLoading = true;
-      setState(() {});
-      await _audioPlayer.setFilePath(path);
-      await _audioPlayer.play();
-
-      _audioPlayer.positionStream.listen((pos) {
-        setState(() => position = pos);
-      });
-
-      _audioPlayer.durationStream.listen((dur) {
-        setState(() => duration = dur ?? Duration.zero);
-      });
-
-      _audioPlayer.playerStateStream.listen((state) {
-        setState(() {
-          isPlaying = state.playing;
-          isPaused =
-              state.processingState == ProcessingState.ready && !state.playing;
-          isLoading = state.processingState == ProcessingState.loading;
-        });
-      });
-    } catch (e) {
-      // ignore: avoid_print
-      print(e);
-    }
-  }
-
-  /// تغيير موضع الصوت
-  void _changeSeek(double value) {
-    _audioPlayer.seek(Duration(seconds: value.toInt()));
-  }
-
-  /// بناء كل رسالة (فقاعة)
   Widget _buildBubble(Map<String, dynamic> msg) {
     final bool isSender = msg['isSender'] ?? false;
 
@@ -137,19 +87,6 @@ class _ChatScreenState extends State<ChatScreen> {
           tail: true,
         );
 
-      case 'audio':
-        return BubbleNormalAudio(
-          color: const Color(0xFFE8E8EE),
-          duration: duration.inSeconds.toDouble(),
-          position: position.inSeconds.toDouble(),
-          isPlaying: isPlaying,
-          isLoading: isLoading,
-          isPause: isPaused,
-          onSeekChanged: _changeSeek,
-          onPlayPauseButtonClick: () => _playAudio(msg['path']),
-          sent: true,
-        );
-
       default:
         return const SizedBox();
     }
@@ -157,7 +94,6 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void dispose() {
-    _audioPlayer.dispose();
     super.dispose();
   }
 
@@ -171,17 +107,17 @@ class _ChatScreenState extends State<ChatScreen> {
         children: [
           Expanded(
             child: ListView.builder(
+              controller: scrollControlle,
               padding: const EdgeInsets.only(bottom: 16),
               reverse: true,
               itemCount: _messages.length,
               itemBuilder: (context, index) {
-                final reversedIndex = _messages.length - 1 - index;
                 return Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 8,
                     vertical: 4,
                   ),
-                  child: _buildBubble(_messages[reversedIndex]),
+                  child: _buildBubble(_messages[index]),
                 );
               },
             ),
@@ -194,13 +130,6 @@ class _ChatScreenState extends State<ChatScreen> {
                 child: const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 8),
                   child: Icon(Icons.image, color: Colors.green, size: 24),
-                ),
-              ),
-              InkWell(
-                onTap: _pickAudio,
-                child: const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 8),
-                  child: Icon(Icons.audiotrack, color: Colors.blue, size: 24),
                 ),
               ),
             ],

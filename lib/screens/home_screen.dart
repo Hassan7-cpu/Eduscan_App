@@ -1,6 +1,9 @@
 import 'dart:io';
 import 'package:eduscan_app/constant.dart';
+import 'package:eduscan_app/helper/chat_room-ai.dart';
+import 'package:eduscan_app/screens/camera.dart';
 import 'package:eduscan_app/screens/camra_screen.dart';
+import 'package:eduscan_app/screens/chat_ai.dart';
 import 'package:eduscan_app/screens/chat_screen.dart';
 import 'package:eduscan_app/screens/profile_screen.dart';
 import 'package:eduscan_app/widgets/home_contect.dart';
@@ -31,10 +34,9 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final List<Widget> pageList = [
       const HomeContect(),
-      imageFile != null
-          ? ImageDisplayPage(imagePath: imageFile!.path)
-          : CameraCaptureScreen(onImageTaken: updateImage),
+      const Camera(),
       const ChatScreen(),
+      ChatRoomDrawer(),
       const ProfileScreen(),
     ];
 
@@ -61,6 +63,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 label: 'Camera',
               ),
               BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Chat'),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.chat_bubble_sharp),
+                label: 'Chat AI',
+              ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.person_rounded),
                 label: 'Profile',
